@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="apple-touch-icon" href="https://augustineiacopelli.github.io/appaday/icons/174.png">
+<meta name="apple-mobile-web-app-title" content="Rising Water">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="manifest" href="https://augustineiacopelli.github.io/appaday/manifests/174.webmanifest">
+<script src="https://augustineiacopelli.github.io/appaday/save.js" defer></script>
+<title>Rising Water | AppADay 174</title>
+<meta name="description" content="A daily word ladder with a flood on your heels. Change one letter at a time to climb from the start word to the goal before the water rises over the ladder.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=Archivo+Black&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#06101D;
+  --surface:#0D1B2E;
+  --surface2:#132640;
+  --line:#22395A;
+  --text:#E8F1FB;
+  --muted:#93A9C4;
+  --accent:#276EB7;
+  --accent-hi:#5AA2EC;
+  --good:#3FBF8A;
+  --warn:#F2A541;
+  --bad:#E5604A;
+  --water1:rgba(52,128,204,.82);
+  --water2:rgba(14,52,98,.95);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text)}
+body{min-height:100dvh;display:flex;flex-direction:column;font-family:Archivo,system-ui,sans-serif;-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+a{color:var(--accent-hi)}
+button{font:inherit;color:inherit}
+.wrap{width:100%;max-width:520px;margin:0 auto;padding:0 16px}
+.hdr{display:flex;align-items:center;gap:12px;padding:calc(10px + env(safe-area-inset-top)) 0 10px}
+.num{flex:none;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(150deg,var(--accent-hi),var(--accent));font-family:"Archivo Black",Archivo,sans-serif;font-size:.95rem;color:#fff}
+.ttl{flex:1;min-width:0}
+.ttl h1{margin:0;font-family:"Archivo Black",Archivo,sans-serif;font-size:clamp(1.15rem,5vw,1.4rem);letter-spacing:.01em;line-height:1.1}
+.ttl a{font-size:.8rem;text-decoration:none;color:var(--muted)}
+.ttl a:hover{color:var(--accent-hi)}
+.icon-btn{flex:none;width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;cursor:pointer}
+.icon-btn:hover{border-color:var(--accent)}
+.icon-btn svg{width:22px;height:22px;stroke:var(--text);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+main{flex:1;display:flex;flex-direction:column;gap:10px;padding-bottom:12px}
+.meta{display:flex;justify-content:space-between;align-items:center;font-size:.82rem;color:var(--muted);gap:8px;white-space:nowrap}
+.meta b{color:var(--text);font-weight:600}
+.gauge{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.drops{display:flex;gap:3px}
+.drop{width:7px;height:10px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;background:var(--line)}
+.drop.on{background:var(--accent-hi)}
+.danger .drop.on{background:var(--bad)}
+
+.goal{display:flex;align-items:center;justify-content:center;gap:10px;padding:8px;border-radius:14px 14px 0 0;background:linear-gradient(180deg,#183252,#10233c);border:1px solid var(--line);border-bottom:0}
+.goal small{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.mini{display:flex;gap:4px}
+.mini span{width:30px;height:34px;border-radius:7px;display:grid;place-items:center;font-family:"Archivo Black",Archivo,sans-serif;font-size:1.05rem;text-transform:uppercase;background:var(--good);color:#06231a}
+.well{position:relative;flex:1;min-height:230px;border:1px solid var(--line);border-radius:0 0 14px 14px;background:
+  repeating-linear-gradient(90deg,transparent 0 23px,rgba(255,255,255,.02) 23px 24px),var(--surface);overflow:hidden;display:flex;flex-direction:column-reverse}
+.well::before,.well::after{content:"";position:absolute;top:0;bottom:0;width:6px;background:linear-gradient(90deg,#3d5577,#2a3e5c);z-index:1}
+.well::before{left:22%}.well::after{right:22%}
+.row{position:relative;flex:1;display:flex;align-items:center;justify-content:center;z-index:4;min-height:0}
+.row::before{content:"";position:absolute;left:22%;right:22%;height:4px;top:50%;margin-top:-2px;background:#2d4466;border-radius:2px;z-index:-1}
+.row .w{line-height:1.25}
+.row.start::before{display:none}
+.row .w{font-family:"Archivo Black",Archivo,sans-serif;text-transform:uppercase;letter-spacing:.22em;font-size:clamp(.82rem,3.4vw,1rem);padding:2px 10px 2px 12px;border-radius:8px;background:var(--surface2);border:1px solid var(--line)}
+.row.start .w{background:#20365a;border-color:var(--accent)}
+.row.cur .w{background:var(--accent);border-color:var(--accent-hi);color:#fff;box-shadow:0 0 0 3px rgba(90,162,236,.25)}
+.row.done .w{background:var(--good);border-color:var(--good);color:#06231a}
+.row .w .ch{display:inline-block}
+.row .w .ch.d{color:var(--warn)}
+.row.cur .w .ch.d,.row.done .w .ch.d{color:#fff;text-decoration:underline;text-underline-offset:3px}
+.row .tag{position:absolute;right:6px;font-size:.62rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.water{position:absolute;left:0;right:0;bottom:0;height:100%;z-index:3;pointer-events:none;transform:translateY(100%);transition:transform .7s cubic-bezier(.3,1.3,.5,1)}
+.water .body{position:absolute;inset:14px 0 0 0;background:linear-gradient(180deg,var(--water1),var(--water2));transition:background .6s}
+.water svg{position:absolute;left:0;top:0;width:200%;height:16px;animation:wave 3.2s linear infinite}
+.water svg path{fill:var(--water1);transition:fill .6s}
+.water .wave2{opacity:.5;animation-duration:5.5s;animation-direction:reverse;top:2px}
+@keyframes wave{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.danger .water{--water1:rgba(229,96,74,.78);--water2:rgba(92,24,30,.95)}
+.drain .water{transition:transform 1.4s ease-in}
+.flood .water{transition:transform 1.2s ease-out}
+
+.msg{min-height:1.4em;text-align:center;font-size:.92rem;color:var(--muted)}
+.msg.err{color:var(--bad)}.msg.ok{color:var(--good)}.msg.hint{color:var(--warn)}
+.tiles{display:flex;justify-content:center;gap:10px}
+.tile{width:clamp(56px,17vw,70px);height:clamp(60px,18vw,74px);border-radius:14px;border:2px solid var(--line);background:var(--surface2);font-family:"Archivo Black",Archivo,sans-serif;font-size:clamp(1.7rem,8vw,2.2rem);text-transform:uppercase;cursor:pointer;display:grid;place-items:center;transition:transform .12s,border-color .12s,background .12s}
+.tile:active{transform:scale(.96)}
+.tile.sel{border-color:var(--accent-hi);background:#1a3a62;box-shadow:0 0 0 4px rgba(90,162,236,.22)}
+.tile.hint{border-color:var(--warn);box-shadow:0 0 0 4px rgba(242,165,65,.25)}
+.tiles.shake{animation:shake .38s}
+@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.keys{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.key{height:46px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-weight:800;font-size:1.05rem;text-transform:uppercase;cursor:pointer}
+.key:hover{border-color:var(--accent)}
+.key:active{background:var(--accent)}
+.key.now{background:#1a3a62;border-color:var(--accent-hi)}
+.key.hk{border-color:var(--warn);color:var(--warn)}
+.keys.off .key,.tiles.off .tile{opacity:.45;pointer-events:none}
+.actions{display:flex;gap:10px}
+.btn{flex:1;min-height:48px;border-radius:12px;border:1px solid var(--line);background:var(--surface);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 12px}
+.btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn:hover{border-color:var(--accent)}
+.btn:disabled{opacity:.4;cursor:default;border-color:var(--line)}
+.btn.primary{background:var(--accent);border-color:var(--accent-hi);color:#fff}
+.btn small{font-weight:400;color:var(--muted);font-size:.78rem}
+.btn.primary small{color:#d6e7fa}
+.hidden{display:none !important}
+
+.scrim{position:fixed;inset:0;background:rgba(2,8,16,.72);display:flex;align-items:flex-end;justify-content:center;z-index:50;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+.sheet{width:100%;max-width:480px;max-height:88dvh;overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px 18px;animation:up .28s ease-out}
+@media(min-width:600px){.scrim{align-items:center}}
+@keyframes up{from{transform:translateY(30px);opacity:0}}
+.sheet h2{margin:0 0 6px;font-family:"Archivo Black",Archivo,sans-serif;font-size:1.35rem}
+.sheet p{margin:8px 0;line-height:1.5;color:#cfdced}
+.sheet .x{float:right;margin:-6px -6px 0 0}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0}
+.stat{background:var(--surface2);border-radius:12px;padding:10px 4px;text-align:center}
+.stat b{display:block;font-family:"Archivo Black",Archivo,sans-serif;font-size:1.4rem}
+.stat span{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.dist{display:grid;gap:6px;margin:6px 0 14px}
+.bar{display:grid;grid-template-columns:62px 1fr;align-items:center;gap:8px;font-size:.8rem;color:var(--muted)}
+.bar i{display:block;height:22px;border-radius:6px;background:var(--line);min-width:26px;color:var(--text);font-style:normal;font-weight:700;text-align:right;padding:2px 8px;font-size:.8rem}
+.bar i.me{background:var(--accent)}
+.path{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.path span{font-family:"Archivo Black",Archivo,sans-serif;text-transform:uppercase;letter-spacing:.12em;font-size:.82rem;background:var(--surface2);border:1px solid var(--line);border-radius:7px;padding:3px 8px}
+.share-box{width:100%;min-height:70px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit;font-size:.9rem;resize:none;margin-top:8px}
+.big{font-size:1.05rem}
+.result-head{display:flex;align-items:center;gap:12px}
+.result-head .badge{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;flex:none}
+.result-head .badge svg{width:28px;height:28px;stroke:#fff;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.badge.win{background:var(--good)}.badge.lose{background:var(--bad)}
+.ex{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0}
+.cd{font-size:.82rem;color:var(--muted);text-align:center;margin-top:10px}
+footer{padding:14px 0 calc(18px + env(safe-area-inset-bottom));color:var(--muted);font-size:.82rem;border-top:1px solid var(--line);text-align:center}
+footer a{text-decoration:none}
+@media (max-height:760px){
+  .hdr{padding-top:calc(6px + env(safe-area-inset-top));padding-bottom:6px}
+  main{gap:7px}
+  .goal{padding:5px}
+  .mini span{width:24px;height:26px;font-size:.88rem;border-radius:6px}
+  .well{min-height:168px}
+  .row .w{font-size:.76rem;padding:0 8px 0 10px;border-radius:6px}
+  .tile{width:54px;height:54px;font-size:1.6rem;border-radius:12px}
+  .keys{gap:5px}
+  .key{height:44px}
+  .btn{min-height:44px}
+  .msg{font-size:.85rem}
+}
+@media (prefers-reduced-motion:reduce){.water,.water svg,.sheet,.tiles.shake{animation:none !important;transition:none !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hdr">
+    <div class="num" aria-hidden="true">174</div>
+    <div class="ttl">
+      <h1>Rising Water</h1>
+      <a href="https://augustineiacopelli.github.io/appaday/">AppADay portfolio</a>
+    </div>
+    <button class="icon-btn" id="helpBtn" aria-label="How to play"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button>
+    <button class="icon-btn" id="statsBtn" aria-label="Statistics"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M8 17V11"/><path d="M13 17V7"/><path d="M18 17v-4"/></svg></button>
+  </header>
+</div>
+
+<main class="wrap" id="game">
+  <div class="meta">
+    <span id="modeLabel"><b>Daily</b></span>
+    <span class="gauge"><span id="gaugeText">Water 0/0</span><span class="drops" id="drops"></span></span>
+  </div>
+  <div>
+    <div class="goal"><small>Goal</small><div class="mini" id="goalTiles"></div></div>
+    <div class="well" id="well">
+      <div class="water" id="water">
+        <div class="body"></div>
+        <svg class="wave2" viewBox="0 0 200 16" preserveAspectRatio="none"><path d="M0 8 Q12.5 0 25 8 T50 8 T75 8 T100 8 T125 8 T150 8 T175 8 T200 8 V16 H0Z"/></svg>
+        <svg viewBox="0 0 200 16" preserveAspectRatio="none"><path d="M0 8 Q12.5 2 25 8 T50 8 T75 8 T100 8 T125 8 T150 8 T175 8 T200 8 V16 H0Z"/></svg>
+      </div>
+    </div>
+  </div>
+  <div class="msg" id="msg" aria-live="polite"></div>
+  <div class="tiles" id="tiles" role="group" aria-label="Current word"></div>
+  <div class="keys" id="keys"></div>
+  <div class="actions" id="playActions">
+    <button class="btn" id="undoBtn"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>Undo</button>
+    <button class="btn" id="hintBtn"><svg viewBox="0 0 24 24"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg>Hint <small>+1 water</small></button>
+  </div>
+  <div class="actions hidden" id="endActions">
+    <button class="btn primary" id="resultBtn">See result</button>
+    <button class="btn" id="practiceBtn">Practice ladder</button>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">AppADay 174 &middot; <a href="https://augustineiacopelli.github.io/appaday/">Back to the AppADay portfolio</a></div>
+</footer>
+
+<div class="scrim hidden" id="helpSheet" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+  <div class="sheet">
+    <button class="icon-btn x" data-close aria-label="Close"><svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+    <h2 id="helpTitle">How to play</h2>
+    <p>Climb from the start word at the bottom to the goal word at the top by changing <b>one letter at a time</b>. Every step has to be a real four letter word.</p>
+    <div class="ex"><span class="path"><span>cold</span><span>cord</span><span>card</span><span>ward</span><span>warm</span></span></div>
+    <p>Tap a tile, then tap a letter. Each move lifts the water one rung, and so does each hint. Reach the goal before the water tops the ladder. The ladder always has three rungs to spare beyond the shortest route.</p>
+    <p>Undo steps you back down but the water stays where it is. Everyone gets the same ladder each day: short early in the week, tallest on the weekend.</p>
+    <p style="color:var(--muted);font-size:.85rem">On a keyboard, type a letter to change the selected tile, use the arrow keys to pick a tile, Backspace to undo, and ? for a hint.</p>
+    <button class="btn primary" data-close style="width:100%;margin-top:8px">Start climbing</button>
+  </div>
+</div>
+
+<div class="scrim hidden" id="resultSheet" role="dialog" aria-modal="true" aria-labelledby="resTitle">
+  <div class="sheet">
+    <button class="icon-btn x" data-close aria-label="Close"><svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+    <div id="resultBody"></div>
+  </div>
+</div>
+
+<script>
+// RW core: dictionary, graph, daily puzzle. Shared by index.html and check.js.
+var RW = (function () {
+  var WORDS = "that with this have from your they just like what when more were time been some also them than good only into know make over then back want well said most much very even here need work year made take many life down last best such love home long look same used both come part find help high does game give next each must show feel sure team ever keep free away left city days name play real done care week case full live read told four hard mean once tell seen stop call head took came side went less line says open area face five kind hope news able book post talk fact guys half hand mind body food true lost room else girl nice idea past move wait data late stay deal soon turn form fire easy near plan west kids list meet type baby song word gave gets self cost held main road town fine hear rest term wife date goes land miss shot site eyes club died film knew lead dead hold star test view hour wish gold gone king bank east park role sent cool rate save blue fall fast felt size step page paid upon hate send vote lord born poor code door hair lose pick race seem sign walk loss ones safe army goal huge okay ways base deep pass risk ball card dark mine note wall boys fans pain rock cold beat text join kept sort drop fair feet link sale tour jobs sell sold wide fear lady plus unit hurt rule none ship band cash lack wear luck rich skin thus fish glad grow trip cars laws male spot holy lots shop sick uses cell foot hall mass nine heat fell ride slow tree whom runs wind cent lake arms fund hill pull push seat draw dude gain ring rise soul wild camp cast firm till gift shut wood copy dear dogs host onto rare boss wake busy ends farm file roll edge evil iron wine core lies port flat fuel kick mail pair zone bear boat duty path rain vice warm arts beer crew moon suit wins debt grew jump sets user flow hero joke loan soft feed legs pool hole milk pack snow weak cook cute fake hits task acts fill pure bird bowl meat mode neck zero jail tiny wave fail seek solo wing hang salt bell blow bond mile sees wars flag kiss load plot rent tips chat diet item lane mess navy tank tend yard golf laid tool mate rice roof calm dumb hide quit sing ages bike burn cake fees loud peak puts grab pink tall lets lock nose wise aged eggs gang lift sons bush coal hunt inch jury tone vast earn grey meal rush bone gate harm thin tied cats drew gear tons wash acid bars duke fort gray math asks bath mood rank sand tape wage bags desk rear wire belt cops cuts maps soil ugly deck dies dust rail root hire pray sake keys adds mill pace pope spin hook seed coat ears fate tube epic exit lips poll tear ties wolf bull deny ease fame tail twin boom knee teen trap cure bite chip dare jazz mask ruin cape edit nuts seal stem beef clay drag fool loop mall rely sole tale wore bass dual gulf logo odds pump slip dawn fits mars tune bold clip exam menu oral pays worn aids lion pipe poem rude toys vary dirt lazy mama shoe chef palm pole shed folk leaf woke aims dish duck hood hung lied nail owns poet sink skip snap swim beta cave dose flip punk wrap yoga boot bulk coin corn raid taxi bare bias bits clue grid sits soap beds lens aunt flew icon ours tier caps crop soup beam horn lean peer pile plug bend cage disc keen mere visa blew deer dive heal cups drum grip mild noon rage silk urge ally lung pine pose pour sang cafe cult jets leak mice riot slot dump fold myth pale pets toll torn hint nest scan span tops doll hull rope bout buzz fled foul hack lamp oven rats slim tent tide bolt bugs bust cope echo sins soda fork hype junk pill pork rays arch axis goat heck lamb liar slam tire warn bail buck disk hats sail void whip wipe chin coup dash jerk barn bent deaf dock feat neat pigs sore bean bump cart cord lawn oval pity pond prey clan hers slap bees dame eyed melt oath stir toes trek amid eats hike lame plea sigh dull fare idol leap pops prep scam swap trio vibe acre amen bore buys cows dial halt monk seas hail lend mint nova bake fury glow lone papa reds rode sack sung toss wool dome gosh rack sued sums bury cubs fist fond frog heir moss tens tomb trim blah haul node sour bids pros saga fade gaps lads lime maid moms oils outs owed rows surf sync bait bark bets levy mock spit yell envy heel swan bald boil cone isle obey ramp reef zoom bats cube guru labs lace pier quiz tags bash doom flee hawk logs nets pony sofa cans crow font glue peel pins ribs tick vent bred curb hips foam kits prom chop guts herb herd lick mold pads polo prop scar vein worm cane cons crab dice dots foil gram ping pots turf bind deed gems gown halo lent mesh pens tray cola coma rams rust stud sunk vain coil flex hose lava oops pact vest vine ants atom hulk jeep knot mayo owes pits rang tile verb apex calf cork funk lump tore akin gaze hugs idle limb peek quad roar sank subs vows aide bans grim shin taco watt chic pike pulp reel refs alas cite dent dove gala lays lure mist mole rant rash ripe sane spun acne bulb chew dime dire hare knit laps mute nerd pint spur tilt veil duel helm maze peas sway veto zinc brew cove cozy neon pest rift tuna atop buds dads ding gill hash puck rite warp womb damp feud fuse fuss gale vale vile bale chap darn geek hymn noun oaks reps soak sock tabs flaw gigs grad mare poke yarn buff claw grin heap muse rods suns beau clad dorm drip duct fats pies tang colt flux mats undo vans wary alps flop jaws ouch pals pubs tame taps blur brow kite lore lush mash plum puff slid tuck clap dunk lest vase cues hoax mono numb pawn reap tidy aura comb curl dams dart fore ions mast rave robe airs cuff loft vets avid bows hind hive mesa moth wink axle brag dine flap glee knob loaf loot musk nuns odor slab ammo crib jays pans punt stew thug alto char hush pear slit wand iced peck raft roam swat tram apes beep boon brat bunk gasp gong heed jars lows pods sham bead duly dusk gran jams mule seam ache aqua bins chow duet dyed foes grit limp mead paws sire bots defy diva flea haze axes coop figs hoop malt owls rink harp hubs oats posh riff aces aria buns edgy joys peep soar begs bras digs dues fife kale lash rake arid moan rein stun tack tart weep woes fins hops itch afar deli moor oily wasp bard cams deem fang loom slew swam toad wick ante carb kiwi limo mane mend mitt rags weld bays jock meek pats pups tees volt wits barb bray slug smug beak boar bran dips lobe nods peat spat typo dyes meow tofu dune fray pore rips rosy skid whim zeal fern fret huts snag tote arcs bane dank sped balm bony emit hens judo slum stag teal wigs yelp mugs rigs rubs shun wavy wept lacy lair moot newt sash sled clam ploy puma rims tint wilt bile bled eras fend gums lice pave plow tome trot airy anew germ opal rung cabs clot keel perk redo rugs skis slag swag zest carp eels gist howl nook pant sewn slur sobs thaw tout gyms hogs hone skim teas curt mobs opus ruse yogi amps byte mink putt rife skit cram hazy jinx lark puns kilo lids grub huff hunk moat muck omen perm woof dill kiln pang dork dory egos gust lurk ogre raps rook snug tiki vial gait gilt pane rout wren yoke brie gags hobo jive lass lull mite naps stub tact veal webs blob omit tubs yawn aloe brim fuzz hoof hues inks inns jest lynx mime spar stow sumo tins yuck beet crux cusp flax hiss morn ruff rump smog whey yolk blot boos toil toot twig fawn jolt sift silo soot tutu veer drab garb hula oars seer skew yeti buoy fowl foxy furs gull lags lisp peso pita sill tots vane yank arty cask clog dojo goof hoot lint loon luxe mica mush onus onyx sips fizz lard pegs sass tarp blip chum coax cull silt snob croc honk pomp saws sown tusk mull oust poof taro awry bask gulp idly jugs mutt orca pall pips chug curd robs faze hurl magi rote taut hilt maul oxen snub spew thud wail whiz acme alms daze pelt dodo gyro jabs kilt cowl deft gash hams kelp lain leek lute prim slog welt ales cede rove vamp bogs dens nosy revs romp shoo tugs husk snip spas teak tuba foal gush ibis pout swab toed wane axed bunt duos juke racy boas burp ooze orbs puny wily feta jute lido pail pare scab seep zips cogs elms etch zing amok firs flue slob wart yams reek rind twos pugs coda coos duds mire sacs soya ahoy rots balk wimp lode sear slop sump urns vats waxy yule chub cots fads flog muff rusk oboe ogle pyre spud bolo eons wisp ably hewn mews boxy doze lugs ohms yore awed crud fume wile aced dabs hued inky laud leer nary pert slaw sows irks jigs ajar ashy elks ices gnaw lope suds tuft wove dour sulk odes trod weds glum raze spry talc whys mops wiry ewes twee bibs flan glob hums gnat jamb clef gunk jibe yurt ibex nags peal serf rasp achy ebbs craw kith luau ulna waif apse eves ward mark bill will rose lily iris ruby jack nick reed sage norm".split(" ");
+  var SET = new Set(WORDS);
+  var ENDPOINT_POOL_SIZE = 1100;
+  var TARGET_BY_DOW = [7, 4, 4, 5, 5, 6, 7]; // Sun..Sat
+  var BUFFER = 3;
+
+  var adj = new Map();
+  WORDS.forEach(function (w) { adj.set(w, []); });
+  var buckets = new Map();
+  WORDS.forEach(function (w) {
+    for (var i = 0; i < 4; i++) {
+      var k = w.slice(0, i) + "_" + w.slice(i + 1);
+      if (!buckets.has(k)) buckets.set(k, []);
+      buckets.get(k).push(w);
+    }
+  });
+  buckets.forEach(function (list) {
+    for (var a = 0; a < list.length; a++)
+      for (var b = a + 1; b < list.length; b++) {
+        adj.get(list[a]).push(list[b]);
+        adj.get(list[b]).push(list[a]);
+      }
+  });
+
+  function bfs(src) {
+    var dist = new Map([[src, 0]]);
+    var q = [src], h = 0;
+    while (h < q.length) {
+      var w = q[h++], d = dist.get(w);
+      var nb = adj.get(w);
+      for (var i = 0; i < nb.length; i++)
+        if (!dist.has(nb[i])) { dist.set(nb[i], d + 1); q.push(nb[i]); }
+    }
+    return dist;
+  }
+
+  // largest connected component
+  var seen = new Set(), comp = null;
+  WORDS.forEach(function (w) {
+    if (seen.has(w)) return;
+    var d = bfs(w);
+    d.forEach(function (_, k) { seen.add(k); });
+    if (!comp || d.size > comp.size) comp = d;
+  });
+  var COMP = new Set(comp.keys());
+
+  function okEnd(w) {
+    return COMP.has(w) && (w[3] !== "s" || w[2] === "s");
+  }
+  var POOL = WORDS.slice(0, ENDPOINT_POOL_SIZE).filter(okEnd).sort();
+
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function ymdOf(date) {
+    return date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
+  }
+  function keyOf(date) {
+    var m = date.getMonth() + 1, d = date.getDate();
+    return date.getFullYear() + "-" + (m < 10 ? "0" : "") + m + "-" + (d < 10 ? "0" : "") + d;
+  }
+
+  function puzzleFor(seed, target) {
+    for (var attempt = 0; attempt < 500; attempt++) {
+      var rng = mulberry32(seed + attempt * 7919);
+      var start = POOL[Math.floor(rng() * POOL.length)];
+      if (adj.get(start).length < 3) continue;
+      var dist = bfs(start);
+      var cands = POOL.filter(function (w) { return dist.get(w) === target && adj.get(w).length >= 2; });
+      if (!cands.length) continue;
+      var end = cands[Math.floor(rng() * cands.length)];
+      return { start: start, end: end, target: target, height: target + BUFFER };
+    }
+    return null;
+  }
+
+  function dailyFor(date) {
+    var p = puzzleFor(ymdOf(date), TARGET_BY_DOW[date.getDay()]);
+    if (p) { p.key = keyOf(date); p.daily = true; }
+    return p;
+  }
+
+  function oneOff(a, b) {
+    if (a.length !== b.length) return false;
+    var n = 0;
+    for (var i = 0; i < a.length; i++) if (a[i] !== b[i]) n++;
+    return n === 1;
+  }
+
+  return {
+    WORDS: WORDS, SET: SET, adj: adj, COMP: COMP, POOL: POOL, bfs: bfs,
+    mulberry32: mulberry32, puzzleFor: puzzleFor, dailyFor: dailyFor,
+    keyOf: keyOf, oneOff: oneOff, TARGET_BY_DOW: TARGET_BY_DOW
+  };
+})();
+if (typeof module !== "undefined") module.exports = RW;
+(function () {
+  "use strict";
+  var STATS_KEY = "appaday.174.stats", TODAY_KEY = "appaday.174.today", HELP_KEY = "appaday.174.help";
+  var SQ_GOOD = "\uD83D\uDFE9", SQ_BLUE = "\uD83D\uDFE6", SQ_SPARE = "\u2B1C", WAVE = "\uD83C\uDF0A";
+  var $ = function (id) { return document.getElementById(id); };
+
+  function load(k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
+  function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+
+  var P = null, S = null, distEnd = null, sel = 0, hintWord = null, todayKey = null;
+
+  function freshState(p) {
+    return { key: p.key || null, start: p.start, end: p.end, chain: [p.start], moves: 0, hints: 0, acts: "", done: false, won: false };
+  }
+
+  function startDaily() {
+    var now = new Date();
+    todayKey = RW.keyOf(now);
+    P = RW.dailyFor(now);
+    var saved = load(TODAY_KEY, null);
+    if (saved && saved.key === P.key && saved.start === P.start && saved.end === P.end) S = saved;
+    else { S = freshState(P); save(TODAY_KEY, S); }
+    begin();
+  }
+
+  function startPractice() {
+    var target = 4 + Math.floor(Math.random() * 3);
+    P = RW.puzzleFor((Date.now() % 2147483647) | 0, target);
+    P.daily = false; P.key = null;
+    S = freshState(P);
+    begin();
+    msg("Practice ladder. It does not touch your stats.", "");
+  }
+
+  function begin() {
+    distEnd = RW.bfs(P.end);
+    sel = 0; hintWord = null;
+    document.body.classList.remove("drain", "flood");
+    $("game").classList.remove("danger");
+    buildLadder();
+    render(true);
+    msg(S.done ? "" : "Tap a tile, then a letter.", "");
+  }
+
+  function water() { return S.moves + S.hints; }
+  function cur() { return S.chain[S.chain.length - 1]; }
+
+  function buildLadder() {
+    var well = $("well");
+    Array.prototype.slice.call(well.querySelectorAll(".row")).forEach(function (r) { well.removeChild(r); });
+    for (var i = 0; i <= P.height; i++) {
+      var r = document.createElement("div");
+      r.className = "row" + (i === 0 ? " start" : "");
+      r.innerHTML = '<span class="w"></span>' + (i === 0 ? '<span class="tag">start</span>' : "");
+      well.appendChild(r);
+    }
+    var g = $("goalTiles"); g.innerHTML = "";
+    for (var j = 0; j < 4; j++) { var s = document.createElement("span"); s.textContent = P.end[j]; g.appendChild(s); }
+    var d = $("drops"); d.innerHTML = "";
+    for (var k = 0; k < P.height; k++) { var dp = document.createElement("span"); dp.className = "drop"; d.appendChild(dp); }
+  }
+
+  function wordHTML(w, prev) {
+    var out = "";
+    for (var i = 0; i < 4; i++) out += '<span class="ch' + (prev && prev[i] !== w[i] ? " d" : "") + '">' + w[i] + "</span>";
+    return out;
+  }
+
+  function render(instant) {
+    var rows = $("well").querySelectorAll(".row");
+    for (var i = 0; i < rows.length; i++) {
+      var w = S.chain[i];
+      var span = rows[i].querySelector(".w");
+      if (w) { span.innerHTML = wordHTML(w, S.chain[i - 1]); span.style.visibility = ""; }
+      else { span.textContent = ""; span.style.visibility = "hidden"; }
+      rows[i].classList.toggle("cur", !!w && i === S.chain.length - 1 && !S.won);
+      rows[i].classList.toggle("done", S.won && !!w);
+    }
+    var wv = water();
+    $("gaugeText").textContent = "Water " + Math.min(wv, P.height) + "/" + P.height;
+    var drops = $("drops").children;
+    for (var k = 0; k < drops.length; k++) drops[k].classList.toggle("on", k < wv);
+    var left = P.height - wv;
+    $("game").classList.toggle("danger", !S.won && left <= 2);
+    var label = (P.daily ? "<b>Daily</b> " + prettyDate(P.key) : "<b>Practice</b>") + " &middot; par " + P.target;
+    $("modeLabel").innerHTML = label;
+    setWater(instant);
+    renderTiles();
+    var over = S.done;
+    $("keys").classList.toggle("off", over);
+    $("tiles").classList.toggle("off", over);
+    $("playActions").classList.toggle("hidden", over);
+    $("endActions").classList.toggle("hidden", !over);
+    $("resultBtn").classList.toggle("hidden", !P.daily);
+    $("practiceBtn").textContent = P.daily ? "Practice ladder" : "Another practice ladder";
+    $("undoBtn").disabled = S.chain.length < 2;
+    $("hintBtn").disabled = left <= 1;
+  }
+
+  function setWater(instant) {
+    var el = $("water"), n = P.height + 1;
+    var frac;
+    if (S.done && S.won) frac = 0.02;
+    else if (S.done) frac = 1.06;
+    else frac = Math.min(1, (water() + 0.38) / n);
+    if (instant) { el.style.transition = "none"; }
+    el.style.transform = "translateY(" + ((1 - frac) * 100).toFixed(2) + "%)";
+    if (instant) { void el.offsetHeight; el.style.transition = ""; }
+  }
+
+  function renderTiles() {
+    var t = $("tiles"); t.innerHTML = "";
+    var w = cur();
+    for (var i = 0; i < 4; i++) {
+      var b = document.createElement("button");
+      b.className = "tile" + (i === sel ? " sel" : "") + (hintWord && hintWord[i] !== w[i] ? " hint" : "");
+      b.textContent = w[i];
+      b.setAttribute("aria-label", "Letter " + (i + 1) + ", " + w[i] + (i === sel ? ", selected" : ""));
+      b.dataset.i = i;
+      t.appendChild(b);
+    }
+    var keys = $("keys").children;
+    for (var k = 0; k < keys.length; k++) {
+      var L = keys[k].dataset.l;
+      keys[k].classList.toggle("now", L === w[sel]);
+      keys[k].classList.toggle("hk", !!hintWord && hintWord[sel] !== w[sel] && hintWord[sel] === L);
+    }
+  }
+
+  function buildKeys() {
+    var k = $("keys");
+    "abcdefghijklmnopqrstuvwxyz".split("").forEach(function (L) {
+      var b = document.createElement("button");
+      b.className = "key"; b.textContent = L; b.dataset.l = L;
+      b.setAttribute("aria-label", "Letter " + L.toUpperCase());
+      k.appendChild(b);
+    });
+  }
+
+  function msg(t, cls) { var m = $("msg"); m.textContent = t; m.className = "msg" + (cls ? " " + cls : ""); }
+  function shake() { var t = $("tiles"); t.classList.remove("shake"); void t.offsetWidth; t.classList.add("shake"); }
+
+  function tryLetter(L) {
+    if (S.done) return;
+    var w = cur();
+    if (w[sel] === L) return;
+    var nw = w.slice(0, sel) + L + w.slice(sel + 1);
+    if (!RW.SET.has(nw)) { shake(); msg(nw.toUpperCase() + " is not in the word list.", "err"); return; }
+    if (S.chain.indexOf(nw) !== -1) { shake(); msg(nw.toUpperCase() + " is already on your ladder.", "err"); return; }
+    var dn = distEnd.has(nw) ? distEnd.get(nw) : 99, dw = distEnd.has(w) ? distEnd.get(w) : 99;
+    var closer = dn < dw;
+    S.chain.push(nw); S.moves++; S.acts += closer ? "g" : "b";
+    hintWord = null;
+    if (nw === S.end) finish(true);
+    else if (water() >= P.height) finish(false);
+    else {
+      var togo = distEnd.get(nw);
+      msg(closer ? "Good step. " + plural(togo, "move") + " from the goal at best." : "That one did not get you closer.", closer ? "ok" : "");
+    }
+    persist(); render();
+  }
+
+  function undo() {
+    if (S.done || S.chain.length < 2) return;
+    S.chain.pop(); hintWord = null;
+    msg("Stepped back to " + cur().toUpperCase() + ". The water stays put.", "");
+    persist(); render();
+  }
+
+  function hint() {
+    if (S.done) return;
+    if (P.height - water() <= 1) { msg("No rungs to spare for a hint.", "err"); return; }
+    var w = cur(), d = distEnd.get(w);
+    var best = null, bi = 1e9, nb = RW.adj.get(w);
+    for (var i = 0; i < nb.length; i++) {
+      var n = nb[i];
+      if (distEnd.get(n) === d - 1 && S.chain.indexOf(n) === -1) {
+        var idx = RW.WORDS.indexOf(n);
+        if (idx < bi) { bi = idx; best = n; }
+      }
+    }
+    S.hints++; S.acts += "h";
+    if (!best) { msg("No way forward from here. Try Undo.", "hint"); }
+    else {
+      hintWord = best;
+      for (var p = 0; p < 4; p++) if (best[p] !== w[p]) sel = p;
+      msg("Try " + best.toUpperCase() + ". Change letter " + (sel + 1) + " to " + best[sel].toUpperCase() + ".", "hint");
+    }
+    persist(); render();
+  }
+
+  function finish(won) {
+    S.done = true; S.won = won;
+    document.body.classList.add(won ? "drain" : "flood");
+    if (P.daily) recordStats(won);
+    msg(won ? "You made it out. The water drains away." : "The water topped the ladder.", won ? "ok" : "err");
+    setTimeout(function () { if (S.done) openResult(); }, won ? 1300 : 1500);
+  }
+
+  function persist() { if (P.daily) save(TODAY_KEY, S); }
+
+  function defaultStats() { return { played: 0, won: 0, cur: 0, max: 0, dist: [0, 0, 0, 0], last: null, lastWin: null }; }
+  function stats() { var s = load(STATS_KEY, null); if (!s || !s.dist) s = defaultStats(); return s; }
+
+  function prevKey(key) {
+    var p = key.split("-"); var d = new Date(+p[0], +p[1] - 1, +p[2], 12); d.setDate(d.getDate() - 1); return RW.keyOf(d);
+  }
+
+  function recordStats(won) {
+    var s = stats();
+    if (s.last === P.key) return;
+    s.played++; s.last = P.key;
+    if (won) {
+      s.won++;
+      s.cur = s.lastWin === prevKey(P.key) ? s.cur + 1 : 1;
+      s.max = Math.max(s.max, s.cur);
+      s.lastWin = P.key;
+      var over = Math.max(0, Math.min(3, water() - P.target));
+      s.dist[over]++;
+    } else s.cur = 0;
+    save(STATS_KEY, s);
+  }
+
+  function shareText() {
+    var sq = "";
+    for (var i = 0; i < S.acts.length; i++) sq += S.acts[i] === "g" ? SQ_GOOD : SQ_BLUE;
+    if (S.won) for (var k = water(); k < P.height; k++) sq += SQ_SPARE;
+    else sq += WAVE;
+    return "Rising Water 174, " + P.key + ", " + (S.won ? plural(S.moves, "move") : "swept away") + ", " + plural(S.hints, "hint") + "\n" + sq + "\nhttps://augustineiacopelli.github.io/appaday-174-rising-water/";
+  }
+
+  function shortestPath() {
+    var out = [P.start], w = P.start;
+    while (w !== P.end) {
+      var d = distEnd.get(w), nb = RW.adj.get(w), pick = null, bi = 1e9;
+      for (var i = 0; i < nb.length; i++) if (distEnd.get(nb[i]) === d - 1) { var x = RW.WORDS.indexOf(nb[i]); if (x < bi) { bi = x; pick = nb[i]; } }
+      out.push(pick); w = pick;
+    }
+    return out;
+  }
+
+  function statsHTML(highlight) {
+    var s = stats(), pct = s.played ? Math.round(s.won / s.played * 100) : 0;
+    var h = '<div class="stats">' +
+      '<div class="stat"><b>' + s.played + '</b><span>Played</span></div>' +
+      '<div class="stat"><b>' + pct + '</b><span>Win %</span></div>' +
+      '<div class="stat"><b>' + s.cur + '</b><span>Streak</span></div>' +
+      '<div class="stat"><b>' + s.max + '</b><span>Best</span></div></div>';
+    var mx = Math.max(1, Math.max.apply(null, s.dist)), names = ["Par", "Par +1", "Par +2", "Par +3"];
+    h += '<p style="margin:0;font-weight:700">Water used beyond par</p><div class="dist">';
+    for (var i = 0; i < 4; i++) {
+      h += '<div class="bar"><span>' + names[i] + '</span><i class="' + (highlight === i ? "me" : "") + '" style="width:' + Math.max(8, s.dist[i] / mx * 100) + '%">' + s.dist[i] + "</i></div>";
+    }
+    return h + "</div>";
+  }
+
+  function openResult() {
+    var b = $("resultBody"), h = "";
+    if (!S.done) {
+      h = '<h2 id="resTitle">Statistics</h2>' + statsHTML(-1);
+    } else {
+      var over = Math.max(0, Math.min(3, water() - P.target));
+      h += '<div class="result-head"><div class="badge ' + (S.won ? "win" : "lose") + '">' +
+        (S.won ? '<svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>' : '<svg viewBox="0 0 24 24"><path d="M2 12c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M2 18c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/></svg>') +
+        '</div><div><h2 id="resTitle">' + (S.won ? "Out of the water" : "Swept away") + '</h2><div style="color:var(--muted);font-size:.9rem">' +
+        plural(S.moves, "move") + ", " + plural(S.hints, "hint") + ", par " + P.target + (P.daily ? "" : ", practice") + "</div></div></div>";
+      h += '<p style="margin-top:14px;font-weight:700">Your climb</p><div class="path">' + S.chain.map(function (w) { return "<span>" + w + "</span>"; }).join("") + "</div>";
+      if (!S.won || S.moves > P.target) h += '<p style="font-weight:700">A shortest route</p><div class="path">' + shortestPath().map(function (w) { return "<span>" + w + "</span>"; }).join("") + "</div>";
+      if (P.daily) {
+        h += statsHTML(S.won ? over : -1);
+        h += '<button class="btn primary big" id="shareBtn" style="width:100%">Share result</button><textarea class="share-box" id="shareBox" readonly></textarea>';
+        h += '<div class="cd" id="countdown"></div>';
+      }
+      h += '<button class="btn" id="practice2" style="width:100%;margin-top:10px">' + (P.daily ? "Practice ladder" : "Another practice ladder") + "</button>";
+      if (!P.daily) h += '<button class="btn" id="backDaily" style="width:100%;margin-top:10px">Back to today&#39;s daily</button>';
+    }
+    b.innerHTML = h;
+    var sb = $("shareBox"); if (sb) sb.value = shareText();
+    var shb = $("shareBtn"); if (shb) shb.onclick = share;
+    var p2 = $("practice2"); if (p2) p2.onclick = function () { close("resultSheet"); startPractice(); };
+    var bd = $("backDaily"); if (bd) bd.onclick = function () { close("resultSheet"); startDaily(); };
+    tickCountdown();
+    open("resultSheet");
+  }
+
+  function share() {
+    var t = shareText(), btn = $("shareBtn");
+    function done(ok) { btn.textContent = ok ? "Copied to clipboard" : "Select the text below to copy"; if (!ok) { var sb = $("shareBox"); sb.focus(); sb.select(); } setTimeout(function () { btn.textContent = "Share result"; }, 2200); }
+    try {
+      if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).then(function () { done(true); }, function () { fallback(); });
+      else fallback();
+    } catch (e) { fallback(); }
+    function fallback() {
+      var sb = $("shareBox"); sb.focus(); sb.select();
+      var ok = false; try { ok = document.execCommand("copy"); } catch (e) {}
+      done(ok);
+    }
+  }
+
+  function tickCountdown() {
+    var el = $("countdown"); if (!el) return;
+    var now = new Date(), next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    var s = Math.max(0, Math.floor((next - now) / 1000));
+    var hh = Math.floor(s / 3600), mm = Math.floor(s % 3600 / 60);
+    el.textContent = "Next daily ladder in " + hh + "h " + (mm < 10 ? "0" : "") + mm + "m";
+  }
+
+  function plural(n, w) { return n + " " + w + (n === 1 ? "" : "s"); }
+  function prettyDate(key) {
+    var p = key.split("-"), d = new Date(+p[0], +p[1] - 1, +p[2]);
+    return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d.getDay()] + " " + ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][d.getMonth()] + " " + d.getDate();
+  }
+
+  var lastFocus = null;
+  function open(id) { lastFocus = document.activeElement; $(id).classList.remove("hidden"); var c = $(id).querySelector("[data-close]"); if (c) c.focus(); }
+  function close(id) { $(id).classList.add("hidden"); if (id === "helpSheet") save(HELP_KEY, 1); if (lastFocus && lastFocus.focus) lastFocus.focus(); }
+  function anyOpen() { return !$("helpSheet").classList.contains("hidden") || !$("resultSheet").classList.contains("hidden"); }
+
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest ? e.target.closest("button, .scrim") : null;
+    if (!t) return;
+    if (t.classList.contains("scrim") && e.target === t) { close(t.id); return; }
+    if (t.hasAttribute && t.hasAttribute("data-close")) { close(t.closest(".scrim").id); return; }
+    if (t.classList.contains("tile")) { sel = +t.dataset.i; renderTiles(); return; }
+    if (t.classList.contains("key")) { tryLetter(t.dataset.l); return; }
+  });
+  $("undoBtn").onclick = undo;
+  $("hintBtn").onclick = hint;
+  $("helpBtn").onclick = function () { open("helpSheet"); };
+  $("statsBtn").onclick = openResult;
+  $("resultBtn").onclick = openResult;
+  $("practiceBtn").onclick = startPractice;
+
+  document.addEventListener("keydown", function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === "Escape") { ["helpSheet", "resultSheet"].forEach(function (id) { if (!$(id).classList.contains("hidden")) close(id); }); return; }
+    if (anyOpen() || S.done) return;
+    if (/^[a-zA-Z]$/.test(e.key)) { tryLetter(e.key.toLowerCase()); e.preventDefault(); }
+    else if (e.key === "ArrowLeft") { sel = (sel + 3) % 4; renderTiles(); e.preventDefault(); }
+    else if (e.key === "ArrowRight") { sel = (sel + 1) % 4; renderTiles(); e.preventDefault(); }
+    else if (e.key === "Backspace") { undo(); e.preventDefault(); }
+    else if (e.key === "?") { hint(); }
+  });
+
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible" && P && P.daily && RW.keyOf(new Date()) !== todayKey) startDaily();
+  });
+  setInterval(tickCountdown, 30000);
+
+  buildKeys();
+  startDaily();
+  if (!load(HELP_KEY, 0)) open("helpSheet");
+  else if (S.done) setTimeout(openResult, 400);
+})();
+</script>
+</body>
+</html>
